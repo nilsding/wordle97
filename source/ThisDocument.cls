@@ -10,5 +10,6 @@ Private Sub Document_Open()
     CustomizationContext = ActiveDocument
     KeyBindings.Add wdKeyCategoryMacro, "WordleGuess", BuildKeyCode(wdKeyReturn)
     
+    Randomize
     InitWordLists
 End Sub
