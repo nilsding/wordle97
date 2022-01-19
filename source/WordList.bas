@@ -33,6 +33,14 @@ Public Function IsKnownWord(guess As String) As Boolean
     Next
 End Function
 
+Public Function GetDailyWord() As String
+    Dim startDate As Date
+    Dim index As Integer
+    startDate = DateSerial(2021, 6, 19)
+    index = DateDiff("d", startDate, Date) Mod WordleWordListLength
+    GetDailyWord = WordleWordList(index)
+End Function
+
 Private Sub InitWordListsPart1()
     WordleWordList(0) = "CIGAR"
     WordleWordList(1) = "REBUT"

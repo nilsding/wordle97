@@ -47,8 +47,8 @@ Sub WordleGuess()
     lastParagraph = ThisDocument.Paragraphs.Count
     
     If WordleWord = "" Then
-        ' random wordle, because why not
-        WordleWord = WordleWordList(Int(Rnd() * WordleWordListLength))
+        ' initialise the game with the daily word
+        WordleWord = GetDailyWord
     End If
 
     paragraph = ThisDocument.Paragraphs(lastParagraph)
