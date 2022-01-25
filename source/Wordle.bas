@@ -4,16 +4,16 @@ Global WordleWord As String
 Private Function gameOver(correctGuess As Boolean)
     Dim res As Integer
     
-    Dim text As String
+    Dim Text As String
     If correctGuess Then
-        text = "Great job!!!" & vbNewLine & _
+        Text = "Great job!!!" & vbNewLine & _
             "You won this WORDle!"
     Else
-        text = "Too many guesses - game over!" & vbNewLine & _
+        Text = "Too many guesses - game over!" & vbNewLine & _
             "The word was: " & WordleWord
     End If
     
-    res = MsgBox(text & vbNewLine & _
+    res = MsgBox(Text & vbNewLine & _
             "Play again?", vbYesNo, "Game Over")
 
     If res = vbYes Then
@@ -40,6 +40,44 @@ Private Sub NewLine()
     Selection.EndKey wdStory
 End Sub
 
+Public Function TextContainsChar(Text As String, Char As String) As Boolean
+    TextContainsChar = False
+    
+    For i = 1 To Len(Text)
+        If Char = Mid(Text, i, 1) Then
+            TextContainsChar = True
+            Exit Function
+        End If
+    Next
+End Function
+
+Public Function TextCharCount(Text As String, Char As String) As Integer
+    TextCharCount = 0
+    
+    For i = 1 To Len(Text)
+        If Char = Mid(Text, i, 1) Then
+            TextCharCount = TextCharCount + 1
+        End If
+    Next
+End Function
+
+Public Function TextWithoutFirstChar(Text As String, Char As String) As String
+    Dim CharFound As Boolean
+    Dim TestChar As String
+    CharFound = False
+    
+    TextWithoutFirstChar = ""
+    
+    For i = 1 To Len(Text)
+        TestChar = Mid(Text, i, 1)
+        If Not CharFound And Char = TestChar Then
+            CharFound = True
+        Else
+            TextWithoutFirstChar = TextWithoutFirstChar & TestChar
+        End If
+    Next
+End Function
+
 Sub WordleGuess()
     Dim paragraph
     Dim lastParagraph As Long
@@ -61,7 +99,7 @@ Sub WordleGuess()
         Exit Sub
     End If
     
-    If Not IsKnownWord(UCase(Left(paragraph.text, 5))) Then
+    If Not IsKnownWord(UCase(Left(paragraph.Text, 5))) Then
         MsgBox "Unknown word!  Try again."
         
         ClearParagraph paragraph
@@ -69,24 +107,41 @@ Sub WordleGuess()
         Exit Sub
     End If
     
+    ' mark correct letters as green and record incorrect guesses
+    Dim IncorrectLetters As String
+    IncorrectLetters = ""
     For i = 1 To paragraph.Characters.Count - 1 ' -1 because of the same reason as it's 6 above
         With paragraph.Characters(i)
-            .text = UCase(.text)
-            guess = guess & .text
-            
-            If .text = Mid(WordleWord, i, 1) Then
-                ' we have a match
+            .Text = UCase(.Text)
+
+            If .Text = Mid(WordleWord, i, 1) Then ' current character is in correct place
                 .HighlightColorIndex = WdColorIndex.wdBrightGreen
             Else
                 ' reset the colour, just in case
                 .HighlightColorIndex = WdColorIndex.wdAuto
 
-                ' this character exists in the word somewhere else
-                For j = 1 To Len(WordleWord)
-                    If .text = Mid(WordleWord, j, 1) Then
+                ' remember the incorrect guess
+                IncorrectLetters = IncorrectLetters & .Text
+            End If
+        End With
+    Next
+    
+    ' mark the other letters
+    For i = 1 To paragraph.Characters.Count - 1 ' -1 because of the same reason as it's 6 above
+        With paragraph.Characters(i)
+            .Text = UCase(.Text)
+            guess = guess & .Text
+            
+            If .Text <> Mid(WordleWord, i, 1) Then ' current character is not correct
+                ' reset the colour, just in case
+                .HighlightColorIndex = WdColorIndex.wdAuto
+
+                If TextContainsChar(WordleWord, .Text) Then ' this character exists in the word somewhere else
+                    If TextCharCount(IncorrectLetters, .Text) - TextCharCount(guess, .Text) >= 0 Then ' and this character was not already guessed in this round
+                        IncorrectLetters = TextWithoutFirstChar(IncorrectLetters, .Text)
                         .HighlightColorIndex = WdColorIndex.wdYellow
                     End If
-                Next
+                End If
             End If
         End With
     Next
@@ -102,4 +157,5 @@ Sub WordleGuess()
         Exit Sub
     End If
 End Sub
+
 
